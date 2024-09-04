@@ -146,13 +146,13 @@ export default {
             }
         },
         googleLogin() {
-            window.location.href = 'http://localhost:8088/oauth2/authorization/google';
+            window.location.href = `${process.env.VUE_APP_API_BASE_URL}/oauth2/authorization/google`;
         },
         kakaoLogin() {
-            window.location.href = 'http://localhost:8088/oauth2/authorization/kakao';
+            window.location.href = `${process.env.VUE_APP_API_BASE_URL}/oauth2/authorization/kakao`;
         },
         naverLogin() {
-            window.location.href = "http://localhost:8088/oauth2/authorization/naver";
+            window.location.href = `${process.env.VUE_APP_API_BASE_URL}/oauth2/authorization/naver`;
         },
         findId() {
             this.$router.push("/user/find-id");
