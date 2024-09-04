@@ -1,0 +1,48 @@
+name: deploy teenkiri to aws s3
+
+# main브랜치에 push될때 현재 스크립트 실행 trigger 발동! 
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+# workflow는 하나 이상의 작업(job)으로 구성. 여기서는 하나의 작업만을 정의
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # 각 작업은 여러 step(단계)로 구성
+    steps: 
+    # actions는 github에서 제공되는 공식 workflow
+    # checkout은 현재 repo의 main브랜치 소스코드를 copy
+      - name: source code checkout
+        uses: actions/checkout@v2
+
+      - name: setup node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: npm install
+        working-directory: .
+        # run은 직접 사용하고자 하는 명령어 !
+        run: npm install
+
+      - name: npm build
+        working-directory: .
+        run: npm run build
+
+      - name: setup aws cli
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET}}
+          aws-region: "ap-northeast-2"
+          
+      - name: clear s3 bucket
+        run: aws s3 rm s3://www.teenkiri.site/ --recursive
+
+      - name: deploy to s3
+        run: aws s3 cp ./dist s3://www.teenkiri.site/ --recursive
+
+      - name: invalidate cloudfront caches
+        run: aws cloudfront create-invalidation --distribution-id E3SJ4CE9Q85SUU --paths "/*"
