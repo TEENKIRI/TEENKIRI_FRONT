@@ -20,47 +20,53 @@
                               prepend-icon="mdi-lock"
                               required
                           ></v-text-field>
-                          <v-checkbox
-                              v-model="rememberEmail"
-                              label="ID 저장"
-                          ></v-checkbox>
-                          <v-checkbox
-                              v-model="autoLogin"
-                              label="자동로그인"
-                          ></v-checkbox>
+                          <v-row>
+                            <v-col>
+                                <v-checkbox
+                                    v-model="rememberEmail"
+                                    label="ID 저장"
+                                ></v-checkbox>
+                            </v-col>
+                            <v-col>
+                                <v-checkbox
+                                    v-model="autoLogin"
+                                    label="자동로그인"
+                                ></v-checkbox>
+                            </v-col>
+                          </v-row>
                           <v-btn block type="submit" color="primary">로그인</v-btn>
                           <v-divider class="my-4"></v-divider>
                           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 5px;">
-                            <v-btn
+                            <button
                               style="flex: 1; height: auto; padding: 0; border: none; display: flex; justify-content: center; align-items: center;"
                               @click="googleLogin"
                             >
                               <img
-                                :src="require('@/assets/images/google.png')"
+                                :src="require('@/assets/images/btn_sign_google.png')"
                                 alt="Google"
                                 style="width: 100%; height: auto; object-fit: contain;"
                               />
-                            </v-btn>
-                            <v-btn
+                            </button>
+                            <button
                                 style="flex: 1; height: auto; padding: 0; border: none; display: flex; justify-content: center; align-items: center;"
                                 @click="kakaoLogin"
                             >
                             <img
-                                :src="require('@/assets/images/kakao_login_medium_narrow.png')"
+                                :src="require('@/assets/images/btn_sign_kakao.png')"
                                 alt="Kakao"
                                 style="width: 100%; height: auto; object-fit: contain;"
                             />
-                            </v-btn>
-                            <v-btn
+                            </button>
+                            <button
                               style="flex: 1; height: auto; padding: 0; border: none; display: flex; justify-content: center; align-items: center;"
                               @click="naverLogin"
                             >
                               <img
-                                :src="require('@/assets/images/naver_login_medium_narrow.png')"
+                                :src="require('@/assets/images/btn_sign_naver.png')"
                                 alt="NAVER"
                                 style="width: 100%; height: auto; object-fit: contain;"
                               />
-                            </v-btn>
+                            </button>
                         </div>
 
                           <v-divider class="my-4"></v-divider>

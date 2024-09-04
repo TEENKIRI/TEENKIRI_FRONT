@@ -30,7 +30,7 @@ export default {
 
 <style>
 .footer {
-  margin: 100px 0 0;
+  margin: 0;
   border-top: 1px solid #afafaf !important;
   padding: 0 !important;
   z-index: 0 !important;
