@@ -1,91 +1,89 @@
 <template>
-  <div class="board-container">
-    <div class="inner">
-      <h1 class="board-title">{{ boardTitle }}</h1>
+  <v-container class="board-container">
+    <h1 class="board-title">{{ boardTitle }}</h1>
 
-      <v-form ref="form" class="d-flex mb-4">
-        <v-col cols="12" md="2"> 
-          <v-select
-            v-model="searchType"
-            :items="searchOptions"
-            item-title="text"
-            item-value="value"
-            label="검색 범위"
-            required
-          ></v-select>
-        </v-col>
-        <v-col cols="12" md="10"> 
-          <v-text-field
-            v-model="searchQuery"
-            label="검색어를 입력하세요."
-            append-icon="mdi-magnify"
-            @click:append="performSearch"
-            required
-          ></v-text-field>
-        </v-col>
-      </v-form>
+    <v-form ref="form" class="d-flex mb-4">
+      <v-col cols="12" md="2"> 
+        <v-select
+          v-model="searchType"
+          :items="searchOptions"
+          item-title="text"
+          item-value="value"
+          label="검색 범위"
+          required
+        ></v-select>
+      </v-col>
+      <v-col cols="12" md="10"> 
+        <v-text-field
+          v-model="searchQuery"
+          label="검색어를 입력하세요."
+          append-icon="mdi-magnify"
+          @click:append="performSearch"
+          required
+        ></v-text-field>
+      </v-col>
+    </v-form>
 
-      <!-- 게시글 목록 테이블 -->
-      <table class="tbl_list">
-        <caption></caption>
-        <colgroup>
-          <col width="80" />
-          <col width="" />
-          <col width="140" />
-          <col width="140" />
-          <col width="140" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th scope="col">번호</th>
-            <th scope="col">제목</th>
-            <th scope="col">작성자</th>
-            <th scope="col">작성일</th>
-            <th scope="col">관리</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(item, index) in boardItems" :key="item.id">
-            <td>{{ index + 1 + (currentPage - 1) * itemsPerPage }}</td>
-            <td @click="goToDetail(item.id, category)" class="text_left subject">{{ item.title }}</td>
-            <td>{{ item.nickname }}</td>
-            <td>{{ formatDate(item.createdTime) }}</td>
-            <td>
-              <button
-                type="button"
-                class="btn_adm_control"
-                v-if="canEditOrDelete(item)"
-                @click="toggleConLayer(item.id)"
-              >•••</button>
-              <div class="conLayer" v-if="activeItem === item.id">
-                <a href="javascript:void(0)" class="btn_board_modify" @click="modifyPost(item.id)">수정</a>
-                <a href="javascript:void(0)" class="btn_board_del btn_del" @click="deletePost(item.id)">삭제</a>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- 게시글 목록 테이블 -->
+    <table class="tbl_list">
+      <caption></caption>
+      <colgroup>
+        <col width="80" />
+        <col width="" />
+        <col width="140" />
+        <col width="140" />
+        <col width="140" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th scope="col">번호</th>
+          <th scope="col">제목</th>
+          <th scope="col">작성자</th>
+          <th scope="col">작성일</th>
+          <th scope="col">관리</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(item, index) in boardItems" :key="item.id">
+          <td>{{ index + 1 + (currentPage - 1) * itemsPerPage }}</td>
+          <td @click="goToDetail(item.id, category)" class="text_left subject">{{ item.title }}</td>
+          <td>{{ item.nickname }}</td>
+          <td>{{ formatDate(item.createdTime) }}</td>
+          <td>
+            <button
+              type="button"
+              class="btn_adm_control"
+              v-if="canEditOrDelete(item)"
+              @click="toggleConLayer(item.id)"
+            >•••</button>
+            <div class="conLayer" v-if="activeItem === item.id">
+              <a href="javascript:void(0)" class="btn_board_modify" @click="modifyPost(item.id)">수정</a>
+              <a href="javascript:void(0)" class="btn_board_del btn_del" @click="deletePost(item.id)">삭제</a>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-      <!-- 작성하기 버튼 -->
-      <div class="btnWrap">
-        <button 
-          v-if="isAdmin || category === 'post'" 
-          @click="createNewPost" 
-          class="btn_write"
-        >
-          작성하기
-        </button>
-      </div>
-
-      <!-- 페이지네이션 -->
-      <v-pagination
-        v-model="currentPage"
-        :length="totalPages"
-        @input="fetchBoardItems"
-        class="my-4"
-      ></v-pagination>
+    <!-- 작성하기 버튼 -->
+    <div class="btnWrap">
+      <button 
+        v-if="isAdmin || category === 'post'" 
+        @click="createNewPost" 
+        class="btn_write"
+      >
+        작성하기
+      </button>
     </div>
-  </div>
+
+    <!-- 페이지네이션 -->
+    <v-pagination
+      v-model="currentPage"
+      :length="totalPages"
+      @input="fetchBoardItems"
+      class="my-4"
+    ></v-pagination>
+  </v-container>
 </template>
 
 <script>
@@ -236,11 +234,6 @@ export default {
 };
 </script>
 <style scoped>
-.board-container {
-  width: 80%;
-  margin: 0 auto;
-  padding-top: 50px;
-}
 
 .inner {
   max-width: 1200px;

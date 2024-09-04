@@ -5,6 +5,10 @@
 const webpack = require('webpack');
 
 module.exports = {
+  css: {
+    extract: false, // false로 설정하면 CSS가 인라인으로 처리됩니다.
+    sourceMap: true, // CSS 소스맵을 활성화하여 디버깅을 쉽게 합니다.
+  },
   devServer: {
     port: 8082,
     proxy: {

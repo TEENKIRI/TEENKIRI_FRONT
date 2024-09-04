@@ -5,11 +5,11 @@
         <li v-for="item in menuItems" :key="item.name">
           <router-link :to="getLink(item.link)">{{ item.name }}</router-link>
         </li>
+        <li>
+          <v-btn @click="doLogout" class="teen_red_bg_c_white">로그아웃</v-btn>
+        </li>
       </ul>
     </nav>
-    <div class="sidebar-footer">
-      <button @click="doLogout">로그아웃</button>
-    </div>
   </div>
 </template>
 
