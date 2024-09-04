@@ -37,7 +37,7 @@
                           <v-btn block type="submit" color="primary">로그인</v-btn>
                           <v-divider class="my-4"></v-divider>
                           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 5px;">
-                            <button
+                            <v-btn
                               style="flex: 1; height: auto; padding: 0; border: none; display: flex; justify-content: center; align-items: center;"
                               @click="googleLogin"
                             >
@@ -46,8 +46,8 @@
                                 alt="Google"
                                 style="width: 100%; height: auto; object-fit: contain;"
                               />
-                            </button>
-                            <button
+                            </v-btn>
+                            <v-btn
                                 style="flex: 1; height: auto; padding: 0; border: none; display: flex; justify-content: center; align-items: center;"
                                 @click="kakaoLogin"
                             >
@@ -56,8 +56,8 @@
                                 alt="Kakao"
                                 style="width: 100%; height: auto; object-fit: contain;"
                             />
-                            </button>
-                            <button
+                            </v-btn>
+                            <v-btn
                               style="flex: 1; height: auto; padding: 0; border: none; display: flex; justify-content: center; align-items: center;"
                               @click="naverLogin"
                             >
@@ -66,7 +66,7 @@
                                 alt="NAVER"
                                 style="width: 100%; height: auto; object-fit: contain;"
                               />
-                            </button>
+                            </v-btn>
                         </div>
 
                           <v-divider class="my-4"></v-divider>
