@@ -75,7 +75,7 @@ import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import axios from 'axios';
 
-let globalStompClient = null;
+let globalStompClient = null;  // WebSocket 연결 전역 변수
 
 export default {
   data() {
@@ -114,7 +114,7 @@ export default {
     }
   },
   mounted() {
-    this.connectWebSocket(); // 페이지 로드 시 WebSocket 연결
+    this.connectWebSocket();  // WebSocket 연결
     this.loadChatHistory();
     this.loadForbiddenWords();
   },
@@ -154,22 +154,22 @@ export default {
       return content;
     },
     connectWebSocket() {
-      // 이미 WebSocket이 연결된 경우, 중복 연결 방지
+      // WebSocket이 이미 연결된 경우 중복 연결 방지
       if (globalStompClient && globalStompClient.connected) {
         console.log('WebSocket 이미 연결됨');
         this.stompClient = globalStompClient;
-        this.subscribeToTopic(this.selectedTopic); // 기존 연결에서 구독 변경만
+        this.subscribeToTopic(this.selectedTopic);  // 선택한 채널로 구독만 변경
         return;
       }
 
-      // 고정된 WebSocket URL로 연결
-      const socket = new SockJS(this.getFixedWebSocketUrl(this.selectedTopic));
+      // 하나의 고정된 WebSocket URL로 연결
+      const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
       globalStompClient = Stomp.over(socket);
       this.stompClient = globalStompClient;
 
       this.stompClient.connect({}, frame => {
         console.log('WebSocket connected: ' + frame);
-        this.subscribeToTopic(this.selectedTopic);
+        this.subscribeToTopic(this.selectedTopic);  // 선택한 채널 구독
       }, error => {
         console.error('웹소켓 연결 실패:', error);
         setTimeout(() => {
@@ -178,37 +178,24 @@ export default {
         }, 5000);
       });
     },
-    getFixedWebSocketUrl(topic) {
-      const websocketUrls = {
-        '/topic/korean': 'wss://server.teenkiri.site/ws/322/korean/websocket',
-        '/topic/english': 'wss://server.teenkiri.site/ws/322/english/websocket',
-        '/topic/math': 'wss://server.teenkiri.site/ws/322/math/websocket',
-        '/topic/social': 'wss://server.teenkiri.site/ws/322/social/websocket',
-        '/topic/science': 'wss://server.teenkiri.site/ws/322/science/websocket'
-      };
-      return websocketUrls[topic] || 'wss://server.teenkiri.site/ws/322/default/websocket';
-    },
     subscribeToTopic(topic) {
+      // 기존 구독 해제
       if (this.currentSubscription) {
-        this.currentSubscription.unsubscribe(); // 기존 구독 해제
+        this.currentSubscription.unsubscribe();
       }
 
       this.selectedTopic = topic;
 
       if (this.stompClient && this.stompClient.connected) {
+        // 새로운 채널로 구독
         this.currentSubscription = this.stompClient.subscribe(topic, message => {
           const receivedMessage = JSON.parse(message.body);
           this.messages.push(receivedMessage);
-          this.scrollToBottom();
+          this.scrollToBottom();  // 메시지가 올 때마다 스크롤 아래로 이동
         });
       }
     },
     sendMessage() {
-      if (this.sending) {
-        console.log('Already sending message');
-        return;
-      }
-
       if (!this.email) {
         console.error('Email is not available');
         return;
@@ -227,7 +214,6 @@ export default {
       }
 
       if (this.stompClient && this.stompClient.connected) {
-        this.sending = true;
         const filteredContent = this.filterMessage(this.newMessage);
         const message = {
           content: filteredContent,
@@ -238,10 +224,10 @@ export default {
         };
         console.log('Sending message:', message);
 
+        // 메시지 전송
         this.stompClient.send(`/app/chat.sendMessage`, {}, JSON.stringify(message));
 
-        this.newMessage = '';
-        this.sending = false;
+        this.newMessage = '';  // 메시지 입력창 비우기
         this.scrollToBottom();
       } else {
         console.error('WebSocket 연결이 끊어졌습니다.');
