@@ -74,6 +74,7 @@ import ReportCreate from '@/views/report/ReportCreate.vue';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -100,7 +101,7 @@ export default {
         '/topic/social': '사회',
         '/topic/science': '과학'
       },
-      selectedTopic: '/topic/korean', // 기본 채널 설정
+      selectedTopic: '/topic/korean',
       currentSubscription: null,  
       forbiddenWords: []
     };
@@ -140,6 +141,16 @@ export default {
       } catch (error) {
         console.error('금지된 단어를 로드하는 중 오류 발생:', error);
       }
+    },
+    filterMessage(content) {
+      this.forbiddenWords.forEach(word => {
+        const regex = new RegExp(
+          word.split('').map(char => `[${char}]`).join(''),
+          'gi'
+        );
+        content = content.replace(regex, '*'.repeat(word.length));
+      });
+      return content;
     },
     connectWebSocket() {
       if (this.stompClient && this.stompClient.connected) {
