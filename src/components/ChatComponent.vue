@@ -114,7 +114,7 @@ export default {
     }
   },
   mounted() {
-    this.connectWebSocket();  // WebSocket 연결
+    this.connectWebSocket(); 
     this.loadChatHistory();
     this.loadForbiddenWords();
   },
@@ -189,11 +189,12 @@ export default {
         this.currentSubscription = this.stompClient.subscribe(topic, message => {
           const receivedMessage = JSON.parse(message.body);
           console.log('Received message:', receivedMessage); 
-          if (!receivedMessage.senderNickname) {
-            console.error('senderNickname이 없습니다:', receivedMessage);
+          if (receivedMessage && receivedMessage.email) {
+            this.messages.push(receivedMessage);
+            this.scrollToBottom();
+          } else {
+            console.error('Received message is missing email:', receivedMessage);
           }
-          this.messages.push(receivedMessage);
-          this.scrollToBottom();
         });
       }
     },
@@ -224,7 +225,6 @@ export default {
           senderId: this.userId,
           email: this.email,
           channel: channel,
-          senderNickname: this.nickname,
         };
         console.log('Sending message:', message);
 
@@ -244,7 +244,7 @@ export default {
         }
       });
     },
-    isMyMessage(message) {  
+    isMyMessage(message) {
       if (!message || !message.email) {
         console.error('Message object or email is undefined:', message);
         return false;
