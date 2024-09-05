@@ -78,6 +78,7 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      loginTime: new Date().toISOString().slice(0, 19),  // 로그인 시간 기록
       messages: [],
       newMessage: '',
       email: localStorage.getItem('email'),
@@ -201,10 +202,12 @@ export default {
     }
   },
   components: {
-  ReportCreate,
-}
+    ReportCreate,
+  }
 };
 </script>
+
+
 
 
 
