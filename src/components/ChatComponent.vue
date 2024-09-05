@@ -44,7 +44,7 @@
         hide-details
         dense
         class="message-input"
-        @keyup.enter="sendMessage"
+        @keyup.enter.prevent="sendMessage" 
       ></v-text-field>
       <v-btn @click="sendMessage" class="send-button" color="primary">전송</v-btn>
     </div>
@@ -168,7 +168,7 @@ export default {
 
       this.stompClient.connect({}, frame => {
         console.log('WebSocket connected: ' + frame);
-        this.subscribeToTopic(this.selectedTopic); // 기본 채널 구독
+        this.subscribeToTopic(this.selectedTopic); 
       }, error => {
         console.error('웹소켓 연결 실패:', error);
         setTimeout(() => {
@@ -188,11 +188,16 @@ export default {
         this.currentSubscription = this.stompClient.subscribe(topic, message => {
           const receivedMessage = JSON.parse(message.body);
           this.messages.push(receivedMessage);
-          this.scrollToBottom();  // 스크롤을 맨 아래로 이동
+          this.scrollToBottom(); 
         });
       }
     },
     sendMessage() {
+      if (this.sending) {
+        console.log('Already sending message');
+        return;
+      }
+
       if (!this.email) {
         console.error('Email is not available');
         return;
@@ -211,6 +216,7 @@ export default {
       }
 
       if (this.stompClient && this.stompClient.connected) {
+        this.sending = true;
         const filteredContent = this.filterMessage(this.newMessage);
         const message = {
           content: filteredContent,
@@ -224,6 +230,7 @@ export default {
         this.stompClient.send(`/app/chat.sendMessage`, {}, JSON.stringify(message));
 
         this.newMessage = '';
+        this.sending = false; 
         this.scrollToBottom();
       } else {
         console.error('WebSocket 연결이 끊어졌습니다.');
