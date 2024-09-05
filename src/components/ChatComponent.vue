@@ -44,7 +44,7 @@
         hide-details
         dense
         class="message-input"
-        @keyup.enter="sendMessage"
+        @keyup.enter.prevent="sendMessage" 
       ></v-text-field>
       <v-btn @click="sendMessage" class="send-button" color="primary">전송</v-btn>
     </div>
@@ -60,24 +60,34 @@
         {{ topicNames[topic] }}
       </v-btn>
     </div>
+
+    <ReportCreate
+      v-if="showReportModal"
+      :chatMessageId="selectedChatMessageId"
+      @close="closeReportModal"
+    />
   </v-container>
 </template>
+
 <script>
+import ReportCreate from '@/views/report/ReportCreate.vue';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import axios from 'axios';
+
+let globalStompClient = null;
 
 export default {
   data() {
     return {
       messages: [],
       newMessage: '',
-      stompClient: null,
-      email: localStorage.getItem('email'),  
+      email: localStorage.getItem('email'),
       userId: localStorage.getItem('userId'),
       nickname: localStorage.getItem('nickname'),
-      selectedTopic: '/topic/korean',
-      currentSubscription: null,
+      loginTime: new Date().toISOString().slice(0, 19),
+      showReportModal: false,
+      selectedChatMessageId: null,
       topics: [
         '/topic/korean',
         '/topic/english',
@@ -92,20 +102,29 @@ export default {
         '/topic/social': '사회',
         '/topic/science': '과학'
       },
+      selectedTopic: '/topic/korean',
+      currentSubscription: null,
       forbiddenWords: []
     };
+  },
+  computed: {
+    filteredMessages() {
+      const currentChannel = this.selectedTopic.replace('/topic/', '');
+      return this.messages.filter(message => message.channel === currentChannel);
+    }
   },
   mounted() {
     this.connectWebSocket();
     this.loadChatHistory();
-    this.loadForbiddenWords();  // 비속어 목록 로드
+    this.loadForbiddenWords();
   },
   methods: {
     async loadChatHistory() {
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_BASE_URL}/api/chat/messages`, {
-          params: { channel: this.selectedTopic.replace('/topic/', '') }
-        });
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_BASE_URL}/api/chat/messages`,
+          { params: { since: this.loginTime } }
+        );
         this.messages = response.data;
         this.scrollToBottom();
       } catch (error) {
@@ -114,14 +133,14 @@ export default {
     },
     async loadForbiddenWords() {
       try {
-        const response = await axios.get('/badwords.txt');  // 비속어 파일 로드
+        const response = await axios.get('/badwords.txt');
         this.forbiddenWords = response.data
           .split('\n')
           .map(word => word.trim())
           .filter(word => word);
         console.log('Loaded forbidden words:', this.forbiddenWords);
       } catch (error) {
-        console.error('비속어 목록을 로드하는 중 오류 발생:', error);
+        console.error('금지된 단어를 로드하는 중 오류 발생:', error);
       }
     },
     filterMessage(content) {
@@ -130,18 +149,33 @@ export default {
           word.split('').map(char => `[${char}]`).join(''),
           'gi'
         );
-        content = content.replace(regex, '*'.repeat(word.length));  // 비속어를 별표로 대체
+        content = content.replace(regex, '*'.repeat(word.length));
       });
       return content;
     },
     connectWebSocket() {
-      if (!this.stompClient) {
-        const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
-        this.stompClient = Stomp.over(socket);
-        this.stompClient.connect({}, () => {
-          this.subscribeToTopic(this.selectedTopic);
-        });
+      // 전역 stompClient가 없거나 연결되지 않은 경우에만 연결 시도
+      if (globalStompClient && globalStompClient.connected) {
+        console.log('WebSocket 이미 연결됨');
+        this.stompClient = globalStompClient;
+        this.subscribeToTopic(this.selectedTopic);
+        return;
       }
+
+      const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
+      globalStompClient = Stomp.over(socket);
+      this.stompClient = globalStompClient;
+
+      this.stompClient.connect({}, frame => {
+        console.log('WebSocket connected: ' + frame);
+        this.subscribeToTopic(this.selectedTopic); 
+      }, error => {
+        console.error('웹소켓 연결 실패:', error);
+        setTimeout(() => {
+          console.log('웹소켓 재접속...');
+          this.connectWebSocket();  
+        }, 5000);
+      });
     },
     subscribeToTopic(topic) {
       if (this.currentSubscription) {
@@ -154,31 +188,52 @@ export default {
         this.currentSubscription = this.stompClient.subscribe(topic, message => {
           const receivedMessage = JSON.parse(message.body);
           this.messages.push(receivedMessage);
-          this.scrollToBottom();
+          this.scrollToBottom(); 
         });
-
-        this.loadChatHistory();
       }
     },
     sendMessage() {
-      if (!this.newMessage.trim()) {
+      if (this.sending) {
+        console.log('Already sending message');
+        return;
+      }
+
+      if (!this.email) {
+        console.error('Email is not available');
+        return;
+      }
+
+      const channel = this.selectedTopic.replace('/topic/', '');
+      if (!channel) {
+        console.error('Channel is not set.');
+        alert('채널이 설정되지 않았습니다.');
+        return;
+      }
+
+      if (this.newMessage.trim() === '') {
         alert('메시지를 입력하세요.');
         return;
       }
 
       if (this.stompClient && this.stompClient.connected) {
+        this.sending = true;
         const filteredContent = this.filterMessage(this.newMessage);
         const message = {
           content: filteredContent,
           senderId: this.userId,
           email: this.email,
-          channel: this.selectedTopic.replace('/topic/', ''),
-          senderNickname: this.nickname
+          channel: channel,
+          senderNickname: this.nickname,
         };
+        console.log('Sending message:', message);
 
-        this.stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(message));
+        this.stompClient.send(`/app/chat.sendMessage`, {}, JSON.stringify(message));
+
         this.newMessage = '';
+        this.sending = false; 
         this.scrollToBottom();
+      } else {
+        console.error('WebSocket 연결이 끊어졌습니다.');
       }
     },
     scrollToBottom() {
@@ -188,13 +243,34 @@ export default {
           chatBox.scrollTop = chatBox.scrollHeight;
         }
       });
+    },
+    isMyMessage(message) {  
+      if (!message || !message.email) {
+      console.error('Message object or email is undefined:', message);
+      return false;
     }
+    return message.email === this.email;
+    },
+    formatTime(datetime) {
+      const date = new Date(datetime);
+      return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+    },
+    closeChat() {
+      console.log('Chat closed');
+    },
+    reportMessage(message) {
+      this.selectedChatMessageId = message.id;
+      this.showReportModal = true;
+    },
+    closeReportModal() {
+      this.showReportModal = false;
+    }
+  },
+  components: {
+    ReportCreate,
   }
 };
 </script>
-
-
-
 
 <style scoped>
 .chat-container {
