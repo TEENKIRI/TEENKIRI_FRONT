@@ -1,17 +1,16 @@
 <template>
   <v-container class="chat-container">
+    <!-- Close button -->
     <v-btn icon @click="closeChat" class="close-button">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
+    <!-- Chat message list -->
     <v-list class="chat-box">
       <v-list-item
         v-for="message in filteredMessages"
         :key="message.id"
-        :class="{
-          'my-message': isMyMessage(message),
-          'other-message': !isMyMessage(message)
-        }"
+        :class="{ 'my-message': isMyMessage(message), 'other-message': !isMyMessage(message) }"
         class="message-item"
       >
         <v-btn
@@ -24,7 +23,7 @@
           <v-icon small>mdi-alarm-light-outline</v-icon>
         </v-btn>
         <v-list-item-content>
-          <v-list-item-title>{{ message.senderNickname }}</v-list-item-title>
+          <v-list-item-title>{{ message.senderNickname || 'Unknown' }}</v-list-item-title>
           <v-list-item-subtitle class="message-content">
             {{ filterMessage(message.content) }}
           </v-list-item-subtitle>
@@ -37,6 +36,7 @@
       </v-list-item>
     </v-list>
 
+    <!-- Input field for sending messages -->
     <div class="message-input-wrapper">
       <v-text-field
         v-model="newMessage"
@@ -44,11 +44,12 @@
         hide-details
         dense
         class="message-input"
-        @keyup.enter.prevent="sendMessage" 
+        @keyup.enter.prevent="sendMessage"
       ></v-text-field>
       <v-btn @click="sendMessage" class="send-button" color="primary">전송</v-btn>
     </div>
 
+    <!-- Topic selection buttons -->
     <div class="topic-buttons">
       <v-btn
         v-for="topic in topics"
@@ -61,6 +62,7 @@
       </v-btn>
     </div>
 
+    <!-- Report modal -->
     <ReportCreate
       v-if="showReportModal"
       :chatMessageId="selectedChatMessageId"
@@ -75,7 +77,7 @@ import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import axios from 'axios';
 
-let globalStompClient = null;
+let globalStompClient = null; // Global stompClient to avoid re-creating WebSocket
 
 export default {
   data() {
@@ -104,7 +106,8 @@ export default {
       },
       selectedTopic: '/topic/korean',
       currentSubscription: null,
-      forbiddenWords: []
+      forbiddenWords: [],
+      sending: false,
     };
   },
   computed: {
@@ -138,25 +141,20 @@ export default {
           .split('\n')
           .map(word => word.trim())
           .filter(word => word);
-        console.log('Loaded forbidden words:', this.forbiddenWords);
       } catch (error) {
         console.error('금지된 단어를 로드하는 중 오류 발생:', error);
       }
     },
     filterMessage(content) {
       this.forbiddenWords.forEach(word => {
-        const regex = new RegExp(
-          word.split('').map(char => `[${char}]`).join(''),
-          'gi'
-        );
+        const regex = new RegExp(word.split('').map(char => `[${char}]`).join(''), 'gi');
         content = content.replace(regex, '*'.repeat(word.length));
       });
       return content;
     },
     connectWebSocket() {
-      // 전역 stompClient가 없거나 연결되지 않은 경우에만 연결 시도
       if (globalStompClient && globalStompClient.connected) {
-        console.log('WebSocket 이미 연결됨');
+        console.log('WebSocket already connected');
         this.stompClient = globalStompClient;
         this.subscribeToTopic(this.selectedTopic);
         return;
@@ -166,14 +164,14 @@ export default {
       globalStompClient = Stomp.over(socket);
       this.stompClient = globalStompClient;
 
-      this.stompClient.connect({}, frame => {
-        console.log('WebSocket connected: ' + frame);
+      this.stompClient.connect({}, () => {
+        console.log('WebSocket connected');
         this.subscribeToTopic(this.selectedTopic); 
       }, error => {
-        console.error('웹소켓 연결 실패:', error);
+        console.error('WebSocket connection failed:', error);
         setTimeout(() => {
-          console.log('웹소켓 재접속...');
-          this.connectWebSocket();  
+          console.log('Retrying WebSocket connection...');
+          this.connectWebSocket();
         }, 5000);
       });
     },
@@ -188,15 +186,12 @@ export default {
         this.currentSubscription = this.stompClient.subscribe(topic, message => {
           const receivedMessage = JSON.parse(message.body);
           this.messages.push(receivedMessage);
-          this.scrollToBottom(); 
+          this.scrollToBottom();
         });
       }
     },
     sendMessage() {
-      if (this.sending) {
-        console.log('Already sending message');
-        return;
-      }
+      if (this.sending) return;
 
       if (!this.email) {
         console.error('Email is not available');
@@ -205,7 +200,6 @@ export default {
 
       const channel = this.selectedTopic.replace('/topic/', '');
       if (!channel) {
-        console.error('Channel is not set.');
         alert('채널이 설정되지 않았습니다.');
         return;
       }
@@ -223,17 +217,15 @@ export default {
           senderId: this.userId,
           email: this.email,
           channel: channel,
-          senderNickname: this.nickname,
+          senderNickname: this.nickname || 'Unknown',
         };
-        console.log('Sending message:', message);
 
         this.stompClient.send(`/app/chat.sendMessage`, {}, JSON.stringify(message));
-
         this.newMessage = '';
-        this.sending = false; 
+        this.sending = false;
         this.scrollToBottom();
       } else {
-        console.error('WebSocket 연결이 끊어졌습니다.');
+        console.error('WebSocket is disconnected');
       }
     },
     scrollToBottom() {
@@ -244,12 +236,12 @@ export default {
         }
       });
     },
-    isMyMessage(message) {  
+    isMyMessage(message) {
       if (!message || !message.email) {
-      console.error('Message object or email is undefined:', message);
-      return false;
-    }
-    return message.email === this.email;
+        console.error('Message or email is undefined:', message);
+        return false;
+      }
+      return message.email === this.email;
     },
     formatTime(datetime) {
       const date = new Date(datetime);
@@ -309,6 +301,7 @@ export default {
   position: relative;
 }
 
+
 .report-button {
   position: absolute;
   right: -30px;
@@ -344,52 +337,6 @@ export default {
   padding: 0 15px;
 }
 
-.message-wrapper {
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  max-width: 50%;
-}
-
-.message-content {
-  font-size: 1rem;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  word-break: break-word;
-  max-width: 100%;
-}
-
-.my-message {
-  background-color: #ffeb3b;
-  align-self: flex-end;
-  text-align: right;
-}
-
-.other-message {
-  background-color: #e5f1fb;
-  align-self: flex-start;
-  text-align: left;
-}
-
-.message-sender {
-  font-size: 0.8em;
-  color: gray;
-  margin-bottom: 5px;
-}
-
-.message-timestamp {
-  font-size: 0.8em;
-  color: gray;
-  margin-top: 5px;
-  text-align: right;
-}
-
-.left-align {
-  text-align: left !important;
-  padding-left: 0;
-  margin-left: 0;
-}
-
 .topic-buttons {
   display: flex;
   justify-content: center;
@@ -398,10 +345,6 @@ export default {
   margin-top: 50px;
   margin-bottom: 0px;
   background: #f9f9f9;
-}
-
-.topic-button {
-  min-width: 80px;
 }
 
 .selected-topic {
