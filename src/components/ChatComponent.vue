@@ -184,3 +184,143 @@ export default {
   }
 };
 </script>
+
+
+
+<style scoped>
+.chat-container {
+display: flex;
+flex-direction: column;
+height: 800px;
+width: 550px;
+margin: 20px auto;
+background: #f9f9f9;
+border-radius: 8px;
+overflow: hidden;
+padding: 7px;
+position: relative;
+}
+
+.close-button {
+position: absolute;
+top: 10px;
+right: 10px;
+}
+
+.chat-box {
+flex-grow: 1;
+padding: 10px;
+background: rgb(255, 255, 255);
+display: flex;
+flex-direction: column;
+gap: 15px;
+overflow-y: auto;
+overflow-x: hidden;
+}
+
+.message-item {
+display: flex;
+align-items: flex-start;
+position: relative;
+}
+
+.report-button {
+position: absolute;
+right: -30px;
+top: 50%;
+transform: translateY(-50%);
+width: 40px;
+height: 20px;
+font-size: 14px;
+color: #f44336;
+}
+
+.message-input-wrapper {
+display: flex;
+align-items: center;
+border-top: 1px solid #ccc;
+padding: 10px;
+background: #f9f9f9;
+margin-bottom: 0px;
+}
+
+.message-input {
+flex-grow: 1;
+border: none;
+padding: 10px;
+margin-right: 10px;
+height: 40px;
+background: #f9f9f9;
+}
+
+.send-button {
+width: auto;
+height: 40px;
+padding: 0 15px;
+}
+
+.message-wrapper {
+display: flex;
+flex-direction: column;
+position: relative;
+max-width: 50%;
+}
+
+.message-content {
+font-size: 1rem;
+white-space: pre-wrap;
+word-wrap: break-word;
+word-break: break-word;
+max-width: 100%;
+}
+
+.my-message {
+background-color: #ffeb3b;
+align-self: flex-end;
+text-align: right;
+}
+
+.other-message {
+background-color: #e5f1fb;
+align-self: flex-start;
+text-align: left;
+}
+
+.message-sender {
+font-size: 0.8em;
+color: gray;
+margin-bottom: 5px;
+}
+
+.message-timestamp {
+font-size: 0.8em;
+color: gray;
+margin-top: 5px;
+text-align: right;
+}
+
+.left-align {
+text-align: left !important;
+padding-left: 0;
+margin-left: 0;
+}
+
+.topic-buttons {
+display: flex;
+justify-content: center;
+gap: 10px;
+padding: 10px 0;
+margin-top: 50px;
+margin-bottom: 0px;
+background: #f9f9f9;
+}
+
+.topic-button {
+min-width: 80px;
+}
+
+.selected-topic {
+background-color: #3f51b5 !important;
+color: white !important;
+}
+</style>
