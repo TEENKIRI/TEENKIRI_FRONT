@@ -13,59 +13,42 @@
 
 </center>
 
-## ✏️TEENKIRI: 초등학생을 위한 온라인 교육 사이트
-
-TEENKIRI는 초등학생을 위한 혁신적인 온라인 교육 플랫폼입니다. 현대 사회에서 교육의 질은 학생의 미래를 결정짓는 중요한 요소입니다. TEENKIRI는 모든 학생이 차별 없이 양질의 교육을 받을 수 있도록, 무료로 최고의 학습 콘텐츠를 제공합니다.
-
-<br>
-
-## 💡프로젝트 목표
-
-TEENKIRI의 목표는 무상으로 제공되는 고품질 교육을 통해 경제적 격차로 인한 교육 불평등을 해소하고, 모든 학생에게 공정한 교육 기회를 제공하는 것입니다. 이를 통해 학부모의 경제적 부담을 줄이고, 학생들이 자신의 잠재력을 최대한 발휘할 수 있도록 지원합니다.
-<br>
+- [ ] 아키텍처, 배포 아키텍쳐
+- [ ] 아키텍쳐 선정이유
+- [ ] 클라이언트랑 서버간에 hand shacke 어떻게 들어가는지
+- [ ] 세션 로그인 플로우
+- [ ] 시행착오 관련 사항
 
 
-## 주요 기능
+
+배포 url
+## 주요 기능 명세
 
 | 기능 | 설명 |
 |------|------|
-| **간편한 회원가입** | 구글 로그인 또는 이메일 인증을 통한 간편한 회원가입으로, 학생들은 빠르고 쉽게 TEENKIRI의 모든 강의를 수강할 수 있습니다. |
+| **간편한 회원가입** | 소셜 로그인(구글, 카카오, 네이버) 또는 SMTP를 사용해 이메일 인증을 통한 간편한 회원가입으로, 학생들은 빠르고 쉽게 TEENKIRI의 모든 강의를 수강할 수 있습니다. |
 | **다양한 강좌** | 과목별로 다채로운 강좌와 강의를 그리고 추천목록을 제공하여 학생들이 자신에게 맞는 선생님과 강좌를 자유롭게 선택할 수 있습니다. |
-| **온라인 영상 강의** | 언제 어디서든 수강 가능한 고품질 녹화 강의를 제공하여 학생들이 자신의 학습 속도에 맞춰 체계적으로 학습하고 진행률을 확인할 수 있습니다. |
+| **온라인 영상 강의** | 강의 제공에 필요한 사진과 및 동영상, 게시판 사진들을 로컬 저장소가 아닌 S3(Simple Storage Service)를 사용하여 저장하여 관리와 접근의 편의성을 높여, 언제 어디서든 수강 가능한 고품질 녹화 강의를 제공하여 학생들이 자신의 학습 속도에 맞춰 체계적으로 학습하고 진행률을 확인할 수 있습니다. |
 | **소통 기능** | 채팅, 자유게시판, 댓글 등을 통해 다른 학생들과 자유롭게 의견을 나누고 소통할 수 있습니다. |
 | **질의응답 시스템** | 학습 중 어려운 부분이나 궁금한 점이 생기면 사진이나 글로 질문을 남길 수 있으며, 실시간 알림을 통해 해당 강좌의 강사가 신속하고 정확한 답변을 제공합니다. |
-| **실시간 알림** | 질문에 대한 답변이나 댓글 알림을 학생들에게 실시간으로 전달하여 빠르고 원활한 학습 환경을 지원합니다. |
-| **실시간 채팅** | 과목별 실시간 채팅을 이용하여, 궁금한 점이 생기면 사용자간 실시간으로 질문을 주고 받을 수 있습니다. |
+| **실시간 알림** | SSE를 사용해 한번의 접속으로 질문에 대한 답변이나 댓글 알림을 학생들에게 실시간으로 전달하여 빠르고 원활한 학습 환경을 지원합니다. |
+| **실시간 채팅** | web socket과 stomp, redis를 사용하여 서버와 클라이언트의 양방향 통신을 사용하고, web socket의 채널을 이용하여 각 과목별 실시간 채팅을 통해 다른 학생들과 자유롭게 소통할 수 있습니다. |
 | **신고 기능** | 부적절한 게시글이나 댓글, 채팅을 신고하여 관리하며, 안전하고 건전한 학습 환경을 유지합니다. |
 <br>
+
 
 ## API 명세서
 [API 명세서](https://www.notion.so/ara-boka/fc5d0810549e4d1b824bbbaba4e4a317?v=7d45cf341d364c86aaf799a90e747692&pvs=4)
 
 ## 스택
 
-### BACKEND
-![Java](https://img.shields.io/badge/java-007396?style=for-the-badge&logo=java&logoColor=white)
-![Spring](https://img.shields.io/badge/spring-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
-![socketdotio](https://img.shields.io/badge/socketdotio-010101?style=for-the-badge)
-
 ### FRONTEND
 ![Vue.js](https://img.shields.io/badge/vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/javascript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![HTML5](https://img.shields.io/badge/html5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![figma](https://img.shields.io/badge/figma-2F5EF5?style=for-the-badge)
 ![vuetify](https://img.shields.io/badge/vuetify-1867C0?style=for-the-badge)
 
-
-
-
-
-
-###  DB
-![mariadb](https://img.shields.io/badge/mariadb-003545?style=for-the-badge&logo=mariadb&logoColor=white)
-![redis](https://img.shields.io/badge/redis-FF4438?style=for-the-badge)
-![amazons3](https://img.shields.io/badge/amazons3-569A31?style=for-the-badge)
 
 ### TOOLS
 ![Notion](https://img.shields.io/badge/notion-181717?style=for-the-badge&logo=notion&logoColor=white)
@@ -78,11 +61,6 @@ TEENKIRI의 목표는 무상으로 제공되는 고품질 교육을 통해 경�
 
 <br>
 
-## 프로젝트 개요
-
-TEENKIRI는 초등학생을 위한 교육 플랫폼으로, 무상으로 고품질의 학습 콘텐츠를 제공하여 학생들이 경제적 차별 없이 양질의 교육을 받을 수 있도록 지원합니다.
-<br>
-
 ## WBS
 
 [WBS 보기](https://docs.google.com/spreadsheets/d/120qVjj7PFPoHNYqx8IHpAQztUI7F3E29oSD8xP9Lv3Y/edit?pli=1&gid=95638865#gid=95638865)
@@ -92,26 +70,91 @@ TEENKIRI는 초등학생을 위한 교육 플랫폼으로, 무상으로 고품�
 [요구사항 명세서 보기](https://docs.google.com/spreadsheets/d/120qVjj7PFPoHNYqx8IHpAQztUI7F3E29oSD8xP9Lv3Y/edit?pli=1&gid=0#gid=0)
 <br>
 
-## ER Diagram
-![Teenieping](https://github.com/user-attachments/assets/e7a4b2f6-ba62-4fcf-b8f1-b076d0db859d)
 
+## 배포 아키텍쳐
+이미지 들어갈 자리
 
-<br>
+### 아키텍쳐 선택이유
+적어야할자리
 
 ## 시스템 아키텍쳐
-### 백엔드 아키텍쳐
-![백엔드아키텍쳐](https://github.com/user-attachments/assets/53f6f1eb-13c2-46de-951d-059a298a2b5e)
 
 ### 프론트엔드 아키텍쳐
 ![프론트아키텍쳐](https://github.com/user-attachments/assets/adf255a8-bd52-484b-8cb5-865c86e1d877)
 
+# 
 
 <details>
-  <summary>통신플로우</summary>
+  <summary> 통신플로우</summary>
   <img src="https://github.com/user-attachments/assets/a5c9e695-5d42-4d8c-bf0f-0e2914bcd0cf">
   <img src="https://github.com/user-attachments/assets/8b8a8a56-00da-402b-8d8e-d187f81f008c">
   <img src="https://github.com/user-attachments/assets/ced481be-325d-4dcb-b52b-826d4e9065c4">
 </details>
+<br>
+
+
+## 구성 스크립트
+
+<details>
+  <summary> Front-End</summary>
+
+  ```
+  name: deploy teenkiri to aws s3
+
+# main브랜치에 push될때 현재 스크립트 실행 trigger 발동! 
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+# workflow는 하나 이상의 작업(job)으로 구성. 여기서는 하나의 작업만을 정의
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # 각 작업은 여러 step(단계)로 구성
+    steps: 
+    # actions는 github에서 제공되는 공식 workflow
+    # checkout은 현재 repo의 main브랜치 소스코드를 copy
+      - name: source code checkout
+        uses: actions/checkout@v2
+
+      - name: setup node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: npm install
+        working-directory: .
+        # run은 직접 사용하고자 하는 명령어 !
+        run: npm install
+
+      - name: npm build
+        working-directory: .
+        run: npm run build
+
+      - name: setup aws cli
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET}}
+          aws-region: "ap-northeast-2"
+          
+      - name: clear s3 bucket
+        run: aws s3 rm s3://www.teenkiri.site/ --recursive
+
+      - name: deploy to s3
+        run: aws s3 cp ./dist s3://www.teenkiri.site/ --recursive
+
+      - name: invalidate cloudfront caches
+        run: aws cloudfront create-invalidation --distribution-id E3SJ4CE9Q85SUU --paths "/*"
+  ```
+</details>
+
+## 시행착오 및 관련사항
+
+### 소셜로그인
+### 실시간 채팅
+
 
 ## 프로젝트 시연
 
