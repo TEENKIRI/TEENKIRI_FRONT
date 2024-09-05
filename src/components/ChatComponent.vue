@@ -154,46 +154,42 @@ export default {
       return content;
     },
     connectWebSocket() {
-      // WebSocket이 이미 연결된 경우 중복 연결 방지
-      if (globalStompClient && globalStompClient.connected) {
-        console.log('WebSocket 이미 연결됨');
-        this.stompClient = globalStompClient;
-        this.subscribeToTopic(this.selectedTopic);  // 선택한 채널로 구독만 변경
-        return;
-      }
-
-      // 하나의 고정된 WebSocket URL로 연결
-      const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
-      globalStompClient = Stomp.over(socket);
+    if (globalStompClient && globalStompClient.connected) {
+      console.log('WebSocket 이미 연결됨');
       this.stompClient = globalStompClient;
+      this.subscribeToTopic(this.selectedTopic);  
+      return;
+    }
 
-      this.stompClient.connect({}, frame => {
-        console.log('WebSocket connected: ' + frame);
-        this.subscribeToTopic(this.selectedTopic);  // 선택한 채널 구독
-      }, error => {
-        console.error('웹소켓 연결 실패:', error);
-        setTimeout(() => {
-          console.log('웹소켓 재접속...');
-          this.connectWebSocket();  
-        }, 5000);
-      });
-    },
+    const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
+    globalStompClient = Stomp.over(socket);
+    this.stompClient = globalStompClient;
+
+    this.stompClient.connect({}, frame => {
+      console.log('WebSocket connected: ' + frame);
+      this.subscribeToTopic(this.selectedTopic); 
+    }, error => {
+      console.error('웹소켓 연결 실패:', error);
+      setTimeout(() => {
+        console.log('웹소켓 재접속...');
+        this.connectWebSocket();  
+      }, 5000);
+    });
+  },
+
     subscribeToTopic(topic) {
-      // 기존 구독 해제
-      if (this.currentSubscription) {
-        this.currentSubscription.unsubscribe();
-      }
+    const formattedTopic = `/topic/${topic}`; 
+    if (this.currentSubscription) {
+      this.currentSubscription.unsubscribe();
+    }
 
-      this.selectedTopic = topic;
-
-      if (this.stompClient && this.stompClient.connected) {
-        // 새로운 채널로 구독
-        this.currentSubscription = this.stompClient.subscribe(topic, message => {
-          const receivedMessage = JSON.parse(message.body);
-          this.messages.push(receivedMessage);
-          this.scrollToBottom();  // 메시지가 올 때마다 스크롤 아래로 이동
-        });
-      }
+    if (this.stompClient && this.stompClient.connected) {
+      this.currentSubscription = this.stompClient.subscribe(formattedTopic, message => {
+        const receivedMessage = JSON.parse(message.body);
+        this.messages.push(receivedMessage); 
+        this.scrollToBottom();  // 스크롤을 아래로 이동
+      });
+    }
     },
     sendMessage() {
       if (!this.email) {
@@ -233,6 +229,7 @@ export default {
         console.error('WebSocket 연결이 끊어졌습니다.');
       }
     },
+
     scrollToBottom() {
       this.$nextTick(() => {
         const chatBox = this.$el.querySelector('.chat-box');
