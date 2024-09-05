@@ -102,6 +102,7 @@ export default {
         '/topic/science': '과학'
       },
       selectedTopic: '/topic/korean',
+      currentSubscription: null,  // 현재 구독 정보를 저장
       forbiddenWords: []
     };
   },
@@ -115,10 +116,6 @@ export default {
     this.loadChatHistory();
     this.connectWebSocket();
     this.loadForbiddenWords();
-
-    this.$nextTick(() => {
-      this.scrollToBottom();
-    });
   },
   methods: {
     async loadChatHistory() {
@@ -148,31 +145,39 @@ export default {
       }
     },
     connectWebSocket() {
+      if (this.stompClient && this.stompClient.connected) {
+        console.log('WebSocket 이미 연결됨');
+        return;  // 중복 연결 방지
+      }
+
       const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
       this.stompClient = Stomp.over(socket);
 
       this.stompClient.connect(
         {},
         frame => {
-          console.log('Connected: ' + frame);
+          console.log('WebSocket connected: ' + frame);
           this.subscribeToTopic(this.selectedTopic);
         },
         error => {
           console.error('웹소켓 연결 실패:', error);
           setTimeout(() => {
-          console.log('웹소켓 재접속...');
-          this.connectWebSocket();  
+            console.log('웹소켓 재접속...');
+            this.connectWebSocket();  
           }, 5000);
-          }
+        }
       );
     },
     subscribeToTopic(topic) {
-      if (this.selectedTopic === topic) return;
+      // 기존 구독 해제
+      if (this.currentSubscription) {
+        this.currentSubscription.unsubscribe();
+      }
 
-      if (this.stompClient) {
-        this.stompClient.unsubscribe(this.selectedTopic);
-        this.selectedTopic = topic;
-        this.stompClient.subscribe(`/topic/${this.selectedTopic.replace('/topic/', '')}`, message => {
+      this.selectedTopic = topic;
+
+      if (this.stompClient && this.stompClient.connected) {
+        this.currentSubscription = this.stompClient.subscribe(`/topic/${this.selectedTopic.replace('/topic/', '')}`, message => {
           const receivedMessage = JSON.parse(message.body);
           this.messages.push(receivedMessage);
           this.scrollToBottom();  // 스크롤을 맨 아래로 이동
@@ -215,9 +220,8 @@ export default {
         const message = {
           content: filteredContent,
           senderId: this.userId,
-          email: this.email,  
-          // channel: channel,
-          channel: this.selectedTopic.replace('/topic/', ''),
+          email: this.email,
+          channel: channel,
           senderNickname: this.nickname,
         };
         console.log('Sending message:', message);
@@ -226,9 +230,9 @@ export default {
 
         this.newMessage = '';
         this.scrollToBottom();
-        } else {
-          console.error('WebSocket 연결이 끊어졌습니다.');
-        }
+      } else {
+        console.error('WebSocket 연결이 끊어졌습니다.');
+      }
     },
     scrollToBottom() {
       this.$nextTick(() => {
