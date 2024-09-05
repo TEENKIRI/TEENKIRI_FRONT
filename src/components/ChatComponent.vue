@@ -74,7 +74,6 @@ import ReportCreate from '@/views/report/ReportCreate.vue';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import axios from 'axios';
-
 export default {
   data() {
     return {
@@ -101,8 +100,8 @@ export default {
         '/topic/social': '사회',
         '/topic/science': '과학'
       },
-      selectedTopic: '/topic/korean',
-      currentSubscription: null,  // 현재 구독 정보를 저장
+      selectedTopic: '/topic/korean', // 기본 채널 설정
+      currentSubscription: null,  
       forbiddenWords: []
     };
   },
@@ -113,8 +112,8 @@ export default {
     }
   },
   mounted() {
-    this.loadChatHistory();
     this.connectWebSocket();
+    this.loadChatHistory();
     this.loadForbiddenWords();
   },
   methods: {
@@ -122,9 +121,7 @@ export default {
       try {
         const response = await axios.get(
           `${process.env.VUE_APP_API_BASE_URL}/api/chat/messages`,
-          {
-            params: { since: this.loginTime }
-          }
+          { params: { since: this.loginTime } }
         );
         this.messages = response.data;
         this.scrollToBottom();
@@ -153,23 +150,18 @@ export default {
       const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
       this.stompClient = Stomp.over(socket);
 
-      this.stompClient.connect(
-        {},
-        frame => {
-          console.log('WebSocket connected: ' + frame);
-          this.subscribeToTopic(this.selectedTopic);
-        },
-        error => {
-          console.error('웹소켓 연결 실패:', error);
-          setTimeout(() => {
-            console.log('웹소켓 재접속...');
-            this.connectWebSocket();  
-          }, 5000);
-        }
-      );
+      this.stompClient.connect({}, frame => {
+        console.log('WebSocket connected: ' + frame);
+        this.subscribeToTopic(this.selectedTopic); // 기본 채널 구독
+      }, error => {
+        console.error('웹소켓 연결 실패:', error);
+        setTimeout(() => {
+          console.log('웹소켓 재접속...');
+          this.connectWebSocket();  
+        }, 5000);
+      });
     },
     subscribeToTopic(topic) {
-      // 기존 구독 해제
       if (this.currentSubscription) {
         this.currentSubscription.unsubscribe();
       }
@@ -177,25 +169,12 @@ export default {
       this.selectedTopic = topic;
 
       if (this.stompClient && this.stompClient.connected) {
-        this.currentSubscription = this.stompClient.subscribe(`/topic/${this.selectedTopic.replace('/topic/', '')}`, message => {
+        this.currentSubscription = this.stompClient.subscribe(topic, message => {
           const receivedMessage = JSON.parse(message.body);
           this.messages.push(receivedMessage);
           this.scrollToBottom();  // 스크롤을 맨 아래로 이동
         });
       }
-    },
-    filterMessage(content) {
-      this.forbiddenWords.forEach(word => {
-        const regex = new RegExp(
-          word
-            .split('')
-            .map(char => `[${char}]+[^\\w\\s]*`)
-            .join(''),
-          'gi'
-        );
-        content = content.replace(regex, '*'.repeat(word.length));
-      });
-      return content;
     },
     sendMessage() {
       if (!this.email) {
@@ -243,11 +222,7 @@ export default {
       });
     },
     isMyMessage(message) {  
-        if (!message || typeof message.email === 'undefined') {
-            console.error('Message object or email is undefined:', message);
-            return false; 
-        }
-        return message.email === this.email; 
+      return message.email === this.email;
     },
     formatTime(datetime) {
       const date = new Date(datetime);
@@ -269,9 +244,6 @@ export default {
   }
 };
 </script>
-
-
-
 <style scoped>
 .chat-container {
   display: flex;
