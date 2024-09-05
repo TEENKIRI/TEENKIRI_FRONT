@@ -33,25 +33,25 @@ axios.interceptors.request.use(
             if (token) {
                 config.headers['Authorization'] = `Bearer ${token}`;
                 
-                try {
-                    const response = await axios.get(`${process.env.VUE_APP_API_BASE_URL}/user/current-user`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        },
-                        skipInterceptor: true
-                    });
+                // try {
+                //     const response = await axios.get(`${process.env.VUE_APP_API_BASE_URL}/user/current-user`, {
+                //         headers: {
+                //             'Authorization': `Bearer ${token}`
+                //         },
+                //         skipInterceptor: true
+                //     });
     
-                    const serverEmail = response.data.email;  // 서버에서 받은 email
+                //     const serverEmail = response.data.email;  // 서버에서 받은 email
     
-                    if (storedEmail && serverEmail && storedEmail !== serverEmail) {
-                        console.warn('Local Storage의 이메일과 서버 이메일이 일치하지 않습니다. 로그아웃합니다.');
+                //     if (storedEmail && serverEmail && storedEmail !== serverEmail) {
+                //         console.warn('Local Storage의 이메일과 서버 이메일이 일치하지 않습니다. 로그아웃합니다.');
     
-                        handleLogout();
-                    }
-                } catch (error) {
-                    console.error('서버의 사용자 정보를 가져오는 중 오류 발생:', error);
-                    handleLogout();
-                }
+                //         handleLogout();
+                //     }
+                // } catch (error) {
+                //     console.error('서버의 사용자 정보를 가져오는 중 오류 발생:', error);
+                //     handleLogout();
+                // }
             }
             return config;
         }
