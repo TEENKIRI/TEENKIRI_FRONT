@@ -178,22 +178,27 @@ export default {
       });
     },
     subscribeToTopic(topic) {
-      // 기존 구독 해제
       if (this.currentSubscription) {
+        console.log(`Unsubscribing from ${this.selectedTopic}`);
         this.currentSubscription.unsubscribe();
       }
 
       this.selectedTopic = topic;
 
       if (this.stompClient && this.stompClient.connected) {
-        // 새로운 채널로 구독
         this.currentSubscription = this.stompClient.subscribe(topic, message => {
           const receivedMessage = JSON.parse(message.body);
+          console.log('Received message:', receivedMessage); 
+          if (!receivedMessage.senderNickname) {
+            console.error('senderNickname이 없습니다:', receivedMessage);
+          }
           this.messages.push(receivedMessage);
-          this.scrollToBottom();  // 메시지가 올 때마다 스크롤 아래로 이동
+          this.scrollToBottom();
         });
       }
     },
+
+
     sendMessage() {
       if (!this.email) {
         console.error('Email is not available');
@@ -223,10 +228,9 @@ export default {
         };
         console.log('Sending message:', message);
 
-        // 메시지 전송
         this.stompClient.send(`/app/chat.sendMessage`, {}, JSON.stringify(message));
 
-        this.newMessage = '';  // 메시지 입력창 비우기
+        this.newMessage = ''; 
         this.scrollToBottom();
       } else {
         console.error('WebSocket 연결이 끊어졌습니다.');
