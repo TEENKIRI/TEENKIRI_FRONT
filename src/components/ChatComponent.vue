@@ -75,13 +75,14 @@ import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import axios from 'axios';
 
+let globalStompClient = null;
+
 export default {
   data() {
     return {
       messages: [],
       newMessage: '',
-      stompClient: null,
-      email: localStorage.getItem('email'),  
+      email: localStorage.getItem('email'),
       userId: localStorage.getItem('userId'),
       nickname: localStorage.getItem('nickname'),
       loginTime: new Date().toISOString().slice(0, 19),
@@ -102,7 +103,7 @@ export default {
         '/topic/science': '과학'
       },
       selectedTopic: '/topic/korean',
-      currentSubscription: null,  
+      currentSubscription: null,
       forbiddenWords: []
     };
   },
@@ -153,13 +154,17 @@ export default {
       return content;
     },
     connectWebSocket() {
-      if (this.stompClient && this.stompClient.connected) {
+      // 전역 stompClient가 없거나 연결되지 않은 경우에만 연결 시도
+      if (globalStompClient && globalStompClient.connected) {
         console.log('WebSocket 이미 연결됨');
-        return;  // 중복 연결 방지
+        this.stompClient = globalStompClient;
+        this.subscribeToTopic(this.selectedTopic);
+        return;
       }
 
       const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
-      this.stompClient = Stomp.over(socket);
+      globalStompClient = Stomp.over(socket);
+      this.stompClient = globalStompClient;
 
       this.stompClient.connect({}, frame => {
         console.log('WebSocket connected: ' + frame);
@@ -259,6 +264,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 .chat-container {
   display: flex;
