@@ -199,17 +199,21 @@ export default {
         return;
       }
 
+      if (this.newMessage.trim() === '') {
+        alert('메시지를 입력하세요.');
+        return;
+      }
+
       if (this.stompClient && this.stompClient.connected) {
         const filteredContent = this.filterMessage(this.newMessage);
         const message = {
           content: filteredContent,
           senderId: this.userId,
-          email: this.email,  // email을 메시지에 포함시킵니다.
+          email: this.email,  
           channel: channel,
           senderNickname: this.nickname,
         };
 
-        // 서버로 메시지 전송
         this.stompClient.send(`/app/chat.sendMessage`, {}, JSON.stringify(message));
 
         this.newMessage = '';
