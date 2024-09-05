@@ -159,10 +159,16 @@ export default {
         },
         error => {
           console.error('웹소켓 연결 실패:', error);
-        }
+          setTimeout(() => {
+          console.log('웹소켓 재접속...');
+          this.connectWebSocket();  
+          }, 5000);
+          }
       );
     },
     subscribeToTopic(topic) {
+      if (this.selectedTopic === topic) return;
+
       if (this.stompClient) {
         this.stompClient.unsubscribe(this.selectedTopic);
         this.selectedTopic = topic;
@@ -210,15 +216,19 @@ export default {
           content: filteredContent,
           senderId: this.userId,
           email: this.email,  
-          channel: channel,
+          // channel: channel,
+          channel: this.selectedTopic.replace('/topic/', ''),
           senderNickname: this.nickname,
         };
+        console.log('Sending message:', message);
 
         this.stompClient.send(`/app/chat.sendMessage`, {}, JSON.stringify(message));
 
         this.newMessage = '';
         this.scrollToBottom();
-      }
+        } else {
+          console.error('WebSocket 연결이 끊어졌습니다.');
+        }
     },
     scrollToBottom() {
       this.$nextTick(() => {
