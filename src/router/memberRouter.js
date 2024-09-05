@@ -110,7 +110,10 @@ export const memberRouter = [
             const accessToken = to.query.token; // 쿼리 파라미터에서 토큰을 가져옴
             // 쿼리 파라미터에서 리프레시 토큰도 가져오려면 아래와 같이 사용합니다.
             const refreshToken = to.query.refreshToken;
-    
+            console.log('진짜 지금부터 집중해 씨')
+            console.log(accessToken)
+            console.log(refreshToken)
+
             if (accessToken) {
                 try {
                     // JWT 토큰을 디코딩하여 사용자 정보를 추출합니다.
