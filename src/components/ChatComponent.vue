@@ -75,7 +75,7 @@ import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import axios from 'axios';
 
-let globalStompClient = null;  // WebSocket 연결 전역 변수
+let globalStompClient = null; 
 
 export default {
   data() {
@@ -154,7 +154,6 @@ export default {
       return content;
     },
     connectWebSocket() {
-      // WebSocket이 이미 연결된 경우 중복 연결 방지
       if (globalStompClient && globalStompClient.connected) {
         console.log('WebSocket 이미 연결됨');
         this.stompClient = globalStompClient;
@@ -268,7 +267,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .chat-container {
