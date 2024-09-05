@@ -233,7 +233,11 @@ export default {
       });
     },
     isMyMessage(message) {  
-      return message.email === this.email;
+      if (!message || !message.email) {
+      console.error('Message object or email is undefined:', message);
+      return false;
+    }
+    return message.email === this.email;
     },
     formatTime(datetime) {
       const date = new Date(datetime);
