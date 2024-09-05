@@ -1,16 +1,17 @@
 <template>
   <v-container class="chat-container">
-    <!-- Close button -->
     <v-btn icon @click="closeChat" class="close-button">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
-    <!-- Chat message list -->
     <v-list class="chat-box">
       <v-list-item
         v-for="message in filteredMessages"
         :key="message.id"
-        :class="{ 'my-message': isMyMessage(message), 'other-message': !isMyMessage(message) }"
+        :class="{
+          'my-message': isMyMessage(message),
+          'other-message': !isMyMessage(message)
+        }"
         class="message-item"
       >
         <v-btn
@@ -23,7 +24,7 @@
           <v-icon small>mdi-alarm-light-outline</v-icon>
         </v-btn>
         <v-list-item-content>
-          <v-list-item-title>{{ message.senderNickname || 'Unknown' }}</v-list-item-title>
+          <v-list-item-title>{{ message.senderNickname }}</v-list-item-title>
           <v-list-item-subtitle class="message-content">
             {{ filterMessage(message.content) }}
           </v-list-item-subtitle>
@@ -36,7 +37,6 @@
       </v-list-item>
     </v-list>
 
-    <!-- Input field for sending messages -->
     <div class="message-input-wrapper">
       <v-text-field
         v-model="newMessage"
@@ -44,12 +44,11 @@
         hide-details
         dense
         class="message-input"
-        @keyup.enter.prevent="sendMessage"
+        @keyup.enter="sendMessage"
       ></v-text-field>
       <v-btn @click="sendMessage" class="send-button" color="primary">전송</v-btn>
     </div>
 
-    <!-- Topic selection buttons -->
     <div class="topic-buttons">
       <v-btn
         v-for="topic in topics"
@@ -61,35 +60,24 @@
         {{ topicNames[topic] }}
       </v-btn>
     </div>
-
-    <!-- Report modal -->
-    <ReportCreate
-      v-if="showReportModal"
-      :chatMessageId="selectedChatMessageId"
-      @close="closeReportModal"
-    />
   </v-container>
 </template>
-
 <script>
-import ReportCreate from '@/views/report/ReportCreate.vue';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import axios from 'axios';
-
-let globalStompClient = null; // Global stompClient to avoid re-creating WebSocket
 
 export default {
   data() {
     return {
       messages: [],
       newMessage: '',
-      email: localStorage.getItem('email'),
+      stompClient: null,
+      email: localStorage.getItem('email'),  
       userId: localStorage.getItem('userId'),
       nickname: localStorage.getItem('nickname'),
-      loginTime: new Date().toISOString().slice(0, 19),
-      showReportModal: false,
-      selectedChatMessageId: null,
+      selectedTopic: '/topic/korean',
+      currentSubscription: null,
       topics: [
         '/topic/korean',
         '/topic/english',
@@ -104,30 +92,20 @@ export default {
         '/topic/social': '사회',
         '/topic/science': '과학'
       },
-      selectedTopic: '/topic/korean',
-      currentSubscription: null,
-      forbiddenWords: [],
-      sending: false,
+      forbiddenWords: []
     };
-  },
-  computed: {
-    filteredMessages() {
-      const currentChannel = this.selectedTopic.replace('/topic/', '');
-      return this.messages.filter(message => message.channel === currentChannel);
-    }
   },
   mounted() {
     this.connectWebSocket();
     this.loadChatHistory();
-    this.loadForbiddenWords();
+    this.loadForbiddenWords();  // 비속어 목록 로드
   },
   methods: {
     async loadChatHistory() {
       try {
-        const response = await axios.get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/chat/messages`,
-          { params: { since: this.loginTime } }
-        );
+        const response = await axios.get(`${process.env.VUE_APP_API_BASE_URL}/api/chat/messages`, {
+          params: { channel: this.selectedTopic.replace('/topic/', '') }
+        });
         this.messages = response.data;
         this.scrollToBottom();
       } catch (error) {
@@ -136,44 +114,34 @@ export default {
     },
     async loadForbiddenWords() {
       try {
-        const response = await axios.get('/badwords.txt');
+        const response = await axios.get('/badwords.txt');  // 비속어 파일 로드
         this.forbiddenWords = response.data
           .split('\n')
           .map(word => word.trim())
           .filter(word => word);
+        console.log('Loaded forbidden words:', this.forbiddenWords);
       } catch (error) {
-        console.error('금지된 단어를 로드하는 중 오류 발생:', error);
+        console.error('비속어 목록을 로드하는 중 오류 발생:', error);
       }
     },
     filterMessage(content) {
       this.forbiddenWords.forEach(word => {
-        const regex = new RegExp(word.split('').map(char => `[${char}]`).join(''), 'gi');
-        content = content.replace(regex, '*'.repeat(word.length));
+        const regex = new RegExp(
+          word.split('').map(char => `[${char}]`).join(''),
+          'gi'
+        );
+        content = content.replace(regex, '*'.repeat(word.length));  // 비속어를 별표로 대체
       });
       return content;
     },
     connectWebSocket() {
-      if (globalStompClient && globalStompClient.connected) {
-        console.log('WebSocket already connected');
-        this.stompClient = globalStompClient;
-        this.subscribeToTopic(this.selectedTopic);
-        return;
+      if (!this.stompClient) {
+        const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
+        this.stompClient = Stomp.over(socket);
+        this.stompClient.connect({}, () => {
+          this.subscribeToTopic(this.selectedTopic);
+        });
       }
-
-      const socket = new SockJS(`${process.env.VUE_APP_API_BASE_URL}/ws`);
-      globalStompClient = Stomp.over(socket);
-      this.stompClient = globalStompClient;
-
-      this.stompClient.connect({}, () => {
-        console.log('WebSocket connected');
-        this.subscribeToTopic(this.selectedTopic); 
-      }, error => {
-        console.error('WebSocket connection failed:', error);
-        setTimeout(() => {
-          console.log('Retrying WebSocket connection...');
-          this.connectWebSocket();
-        }, 5000);
-      });
     },
     subscribeToTopic(topic) {
       if (this.currentSubscription) {
@@ -188,44 +156,29 @@ export default {
           this.messages.push(receivedMessage);
           this.scrollToBottom();
         });
+
+        this.loadChatHistory();
       }
     },
     sendMessage() {
-      if (this.sending) return;
-
-      if (!this.email) {
-        console.error('Email is not available');
-        return;
-      }
-
-      const channel = this.selectedTopic.replace('/topic/', '');
-      if (!channel) {
-        alert('채널이 설정되지 않았습니다.');
-        return;
-      }
-
-      if (this.newMessage.trim() === '') {
+      if (!this.newMessage.trim()) {
         alert('메시지를 입력하세요.');
         return;
       }
 
       if (this.stompClient && this.stompClient.connected) {
-        this.sending = true;
         const filteredContent = this.filterMessage(this.newMessage);
         const message = {
           content: filteredContent,
           senderId: this.userId,
           email: this.email,
-          channel: channel,
-          senderNickname: this.nickname || 'Unknown',
+          channel: this.selectedTopic.replace('/topic/', ''),
+          senderNickname: this.nickname
         };
 
-        this.stompClient.send(`/app/chat.sendMessage`, {}, JSON.stringify(message));
+        this.stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(message));
         this.newMessage = '';
-        this.sending = false;
         this.scrollToBottom();
-      } else {
-        console.error('WebSocket is disconnected');
       }
     },
     scrollToBottom() {
@@ -235,34 +188,13 @@ export default {
           chatBox.scrollTop = chatBox.scrollHeight;
         }
       });
-    },
-    isMyMessage(message) {
-      if (!message || !message.email) {
-        console.error('Message or email is undefined:', message);
-        return false;
-      }
-      return message.email === this.email;
-    },
-    formatTime(datetime) {
-      const date = new Date(datetime);
-      return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
-    },
-    closeChat() {
-      console.log('Chat closed');
-    },
-    reportMessage(message) {
-      this.selectedChatMessageId = message.id;
-      this.showReportModal = true;
-    },
-    closeReportModal() {
-      this.showReportModal = false;
     }
-  },
-  components: {
-    ReportCreate,
   }
 };
 </script>
+
+
+
 
 <style scoped>
 .chat-container {
@@ -301,7 +233,6 @@ export default {
   position: relative;
 }
 
-
 .report-button {
   position: absolute;
   right: -30px;
@@ -337,6 +268,52 @@ export default {
   padding: 0 15px;
 }
 
+.message-wrapper {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  max-width: 50%;
+}
+
+.message-content {
+  font-size: 1rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.my-message {
+  background-color: #ffeb3b;
+  align-self: flex-end;
+  text-align: right;
+}
+
+.other-message {
+  background-color: #e5f1fb;
+  align-self: flex-start;
+  text-align: left;
+}
+
+.message-sender {
+  font-size: 0.8em;
+  color: gray;
+  margin-bottom: 5px;
+}
+
+.message-timestamp {
+  font-size: 0.8em;
+  color: gray;
+  margin-top: 5px;
+  text-align: right;
+}
+
+.left-align {
+  text-align: left !important;
+  padding-left: 0;
+  margin-left: 0;
+}
+
 .topic-buttons {
   display: flex;
   justify-content: center;
@@ -345,6 +322,10 @@ export default {
   margin-top: 50px;
   margin-bottom: 0px;
   background: #f9f9f9;
+}
+
+.topic-button {
+  min-width: 80px;
 }
 
 .selected-topic {
