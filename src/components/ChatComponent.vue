@@ -82,6 +82,7 @@ export default {
     return {
       messages: [],
       newMessage: '',
+      isSending: false,
       email: localStorage.getItem('email'),
       userId: localStorage.getItem('userId'),
       nickname: localStorage.getItem('nickname'),
@@ -201,6 +202,10 @@ export default {
 
 
     sendMessage() {
+      if (this.isSending) {
+        return;
+      }
+
       if (!this.email) {
         console.error('Email is not available');
         return;
@@ -227,11 +232,16 @@ export default {
           channel: channel,
         };
         console.log('Sending message:', message);
+        this.isSending = true;
 
         this.stompClient.send(`/app/chat.sendMessage`, {}, JSON.stringify(message));
-
         this.newMessage = ''; 
         this.scrollToBottom();
+
+        setTimeout(() => {
+          this.isSending = false;
+        }, 1000);
+
       } else {
         console.error('WebSocket 연결이 끊어졌습니다.');
       }
