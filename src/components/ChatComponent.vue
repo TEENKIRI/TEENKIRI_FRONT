@@ -44,7 +44,7 @@
         hide-details
         dense
         class="message-input"
-        @keyup.enter.prevent="sendMessage" 
+        @keyup.enter.prevent="handleKeyUpEnter" 
       ></v-text-field>
       <v-btn @click="sendMessage" class="send-button" color="primary">전송</v-btn>
     </div>
@@ -246,6 +246,11 @@ export default {
         console.error('WebSocket 연결이 끊어졌습니다.');
       }
     },
+    handleKeyUpEnter() {
+    if (!this.isSending) {
+      this.sendMessage();
+    }
+  },
     scrollToBottom() {
       this.$nextTick(() => {
         const chatBox = this.$el.querySelector('.chat-box');
