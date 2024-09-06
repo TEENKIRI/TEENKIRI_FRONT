@@ -1,4 +1,5 @@
-![null_틴키리](https://github.com/user-attachments/assets/08a561c5-f43c-4d95-a8ff-13dfd638a6af)
+[![null_틴키리](https://github.com/user-attachments/assets/08a561c5-f43c-4d95-a8ff-13dfd638a6af)](https://www.teenkiri.site/)
+
 
 # 팀명: TEENKIRI
 
@@ -12,14 +13,6 @@
 | ![김창현](https://github.com/user-attachments/assets/6cbde653-2dc2-41bc-967b-98c385ca0324) | ![김정은](https://github.com/user-attachments/assets/39f023ed-c272-4218-b11c-c03c2c51ed5e) | ![이예나](https://github.com/user-attachments/assets/50ca9133-e2ab-4d45-b4ee-200bc1f21f31) | ![이한아](https://github.com/user-attachments/assets/29f30df2-465e-45e3-925a-c84bdb003a72) | ![황요한](https://github.com/user-attachments/assets/f69d21a0-496b-46e3-b380-3443a905a791) |
 
 </center>
-
-- [ ] 아키텍처, 배포 아키텍쳐
-- [ ] 아키텍쳐 선정이유
-- [ ] 클라이언트랑 서버간에 hand shacke 어떻게 들어가는지
-- [ ] 세션 로그인 플로우
-- [ ] 시행착오 관련 사항
-
-
 
 배포 url
 ## 주요 기능 명세
@@ -57,7 +50,8 @@
 ![Gather](https://img.shields.io/badge/gather-2F5EF5?style=for-the-badge)
 ![figma](https://img.shields.io/badge/figma-2F5EF5?style=for-the-badge)
 
-
+### 배포툴
+![cloudFront](https://img.shields.io/badge/cloudFront-2F5EF5?style=for-the-badge)
 
 <br>
 
@@ -92,6 +86,10 @@
 </details>
 <br>
 
+
+<details>
+  <summary>세션로그인 플로우</summary>
+</details>
 
 ## 구성 스크립트
 
@@ -154,7 +152,7 @@ jobs:
 
 ### 소셜로그인
 ### 실시간 채팅
-
+### S3 파일 용량 제한 이슈
 
 ## 프로젝트 시연
 
